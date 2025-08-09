@@ -21,11 +21,11 @@ user:Observable<User|null>;
 
   register(registerModel:any): Observable<User> {
   // implement registration logic
-  return this.httpClient.post<User>(`${environment.apiUrl}/register`, registerModel)
+  return this.httpClient.post<User>(`${environment.authUrl}/register`, registerModel)
 }
 
   login(loginModel:any): Observable<User> {
-    return this.httpClient.post<User>(`${environment.apiUrl}/login`, loginModel)
+    return this.httpClient.post<User>(`${environment.authUrl}/login`, loginModel)
       .pipe(
         map(user=>{
               // store user details and jwt token in local storage to keep user logged in between page refreshes
