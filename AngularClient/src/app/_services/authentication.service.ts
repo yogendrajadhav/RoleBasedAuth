@@ -53,7 +53,7 @@ export class AuthenticationService {
   setToken(data: string) {
     localStorage.setItem('token', data);
 
-    const expiresIn = 3600; // seconds (1 hour)
+    const expiresIn = 180; // seconds (3 minutes)
     const expiryTime = new Date().getTime() + expiresIn * 1000;
 
     localStorage.setItem('access_token', data);
