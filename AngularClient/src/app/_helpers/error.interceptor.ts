@@ -2,10 +2,10 @@ import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpInterce
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, Observable, throwError } from 'rxjs';
-
+import { ToastrService } from 'ngx-toastr';
 @Injectable({providedIn:'root'})
 export class ErrorInterceptor implements HttpInterceptor{
-  constructor(private router:Router){}
+  constructor(private router:Router, private toastr: ToastrService){}
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
@@ -13,10 +13,12 @@ export class ErrorInterceptor implements HttpInterceptor{
         if (error.status === 401) {
           // Redirect to login or show an error message
           console.error('Unauthorized request - redirecting to login');
+           this.toastr.error('Unauthorized request - redirecting to login', 'Error', { timeOut: 3000 });
           this.router.navigate(['/login']);
         } else if (error.status === 403) {
           // Handle forbidden access
           console.error('Forbidden request - redirecting to home');
+          this.toastr.error('Forbidden request - redirecting to home', 'Error', { timeOut: 3000 });
           this.router.navigate(['/']);
         } else {
           // Handle other errors
