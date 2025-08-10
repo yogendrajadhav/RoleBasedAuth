@@ -6,7 +6,15 @@ import { AuthenticationService } from '../_services/authentication.service';
 export class AuthGuard implements CanActivate{
   
   constructor(private authService:AuthenticationService, private router:Router){}
+
   canActivate(route: ActivatedRouteSnapshot,state: RouterStateSnapshot): boolean {
+    
+    if (this.authService.isTokenExpired()) {
+      this.authService.removeExpiredToken(); // or remove only specific keys
+      this.router.navigate(['/login']);
+      return false;
+    }
+
     const rolesAssigned=this.authService.getUserRoles();
     if(rolesAssigned && rolesAssigned.length>0){
       // check if route is restricted by role
