@@ -3,8 +3,8 @@ import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import { User } from '../_models/user';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment.development';
-
+import { environment } from '../../environments/environment';
+import {jwtDecode} from 'jwt-decode';
 @Injectable({
   providedIn: 'root'
 })
@@ -27,11 +27,12 @@ user:Observable<User|null>;
   login(loginModel:any): Observable<User> {
     return this.httpClient.post<User>(`${environment.authUrl}/login`, loginModel)
       .pipe(
-        map(user=>{
+        map((response:any)=>{
               // store user details and jwt token in local storage to keep user logged in between page refreshes
-        localStorage.setItem('user', JSON.stringify(user));
-        this.userSubject.next(user);
-        return user;
+              this.setToken(response.data);
+              localStorage.setItem('user', JSON.stringify(response));
+        this.userSubject.next(response);
+        return response;
       }) //map ends here
     ); //pipe ends here
   }
@@ -42,5 +43,17 @@ user:Observable<User|null>;
         this.userSubject.next(null);
         this.router.navigate(['/login']);
     }
+    getUserRoles(): string[] {
+    const token = this.getToken();
+    if (!token) return [];
 
+    const decoded: any = jwtDecode(token);
+    return Array.isArray(decoded.role) ? decoded.role : [decoded.role]; // Handle both string and array
+  }
+  setToken(data:string){
+    localStorage.setItem('token',data);
+  }
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
 }
