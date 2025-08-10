@@ -1,1 +1,13 @@
-<p>home works!</p>
+<div class="card mt-4">
+    <h4 class="card-header">Home</h4>
+    <div class="card-body">
+        <p>user are logged in Angular 16</p>
+        <p>your role is <strong>{{user?.role}}</strong></p>
+        <p class="mb-1">Current User from secure API endpoint:</p>
+        <div *ngIf="loading" class="spinner-border spinner-border-sm">
+            <ul *ngIf="userFromApi">
+                <li>{{userFromApi.firstName}} {{userFromApi.lastName}}</li>
+            </ul>
+        </div>
+    </div>
+</div>
