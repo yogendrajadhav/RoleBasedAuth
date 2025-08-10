@@ -4,56 +4,79 @@ import { User } from '../_models/user';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 @Injectable({
   providedIn: 'root'
 })
 export class AuthenticationService {
-userSubject: BehaviorSubject<User|null>;
-user:Observable<User|null>;
-  constructor(private router:Router, private httpClient:HttpClient) {
-    this.userSubject = new BehaviorSubject<User|null>(JSON.parse(localStorage.getItem('user')!));
-    this.user=this.userSubject.asObservable();
-   }
-  public get userValue(): User|null {
+  userSubject: BehaviorSubject<User | null>;
+  user: Observable<User | null>;
+  constructor(private router: Router, private httpClient: HttpClient) {
+    this.userSubject = new BehaviorSubject<User | null>(JSON.parse(localStorage.getItem('user')!));
+    this.user = this.userSubject.asObservable();
+  }
+  public get userValue(): User | null {
     return this.userSubject.value;
   }
 
-  register(registerModel:any): Observable<User> {
-  // implement registration logic
-  return this.httpClient.post<User>(`${environment.authUrl}/register`, registerModel)
-}
+  register(registerModel: any): Observable<User> {
+    // implement registration logic
+    return this.httpClient.post<User>(`${environment.authUrl}/register`, registerModel)
+  }
 
-  login(loginModel:any): Observable<User> {
+  login(loginModel: any): Observable<User> {
     return this.httpClient.post<User>(`${environment.authUrl}/login`, loginModel)
       .pipe(
-        map((response:any)=>{
-              // store user details and jwt token in local storage to keep user logged in between page refreshes
-              this.setToken(response.data);
-              localStorage.setItem('user', JSON.stringify(response));
-        this.userSubject.next(response);
-        return response;
-      }) //map ends here
-    ); //pipe ends here
+        map((response: any) => {
+          // store user details and jwt token in local storage to keep user logged in between page refreshes
+          this.setToken(response.data);
+          localStorage.setItem('user', JSON.stringify(response));
+          this.userSubject.next(response);
+          return response;
+        }) //map ends here
+      ); //pipe ends here
   }
-  
-    logout() {
-        // remove user from local storage to log user out
-        localStorage.removeItem('user');
-        this.userSubject.next(null);
-        this.router.navigate(['/login']);
-    }
-    getUserRoles(): string[] {
+
+  logout() {
+    // remove user from local storage to log user out
+    localStorage.removeItem('user');
+    this.userSubject.next(null);
+    this.router.navigate(['/login']);
+  }
+  getUserRoles(): string[] {
     const token = this.getToken();
     if (!token) return [];
 
     const decoded: any = jwtDecode(token);
     return Array.isArray(decoded.role) ? decoded.role : [decoded.role]; // Handle both string and array
   }
-  setToken(data:string){
-    localStorage.setItem('token',data);
+  setToken(data: string) {
+    localStorage.setItem('token', data);
+
+    const expiresIn = 3600; // seconds (1 hour)
+    const expiryTime = new Date().getTime() + expiresIn * 1000;
+
+    localStorage.setItem('access_token', data);
+    localStorage.setItem('token_expiry', expiryTime.toString());
   }
+
   getToken(): string | null {
     return localStorage.getItem('token');
   }
+ isTokenExpired(): boolean {
+  const expiry = localStorage.getItem('token_expiry');
+  if (!expiry) return true;
+
+  const now = new Date().getTime();
+  return now > +expiry;
+}
+
+removeExpiredToken(): void {
+  if (this.isTokenExpired()) {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('token_expiry');
+  }
+}
+
 }
