@@ -10,6 +10,7 @@ import { jwtDecode } from 'jwt-decode';
 })
 export class AuthenticationService {
   userSubject: BehaviorSubject<User | null>;
+  
   user: Observable<User | null>;
   constructor(private router: Router, private httpClient: HttpClient) {
     this.userSubject = new BehaviorSubject<User | null>(JSON.parse(localStorage.getItem('user')!));
@@ -24,17 +25,29 @@ export class AuthenticationService {
     return this.httpClient.post<User>(`${environment.authUrl}/register`, registerModel)
   }
 
-  login(loginModel: any): Observable<User> {
-    return this.httpClient.post<User>(`${environment.authUrl}/login`, loginModel)
+  login(loginModel: any): Observable<any> {
+    return this.httpClient.post<any>(`${environment.authUrl}/login`, loginModel)
       .pipe(
         map((response: any) => {
-          // store user details and jwt token in local storage to keep user logged in between page refreshes
-          this.setToken(response.data);
-          localStorage.setItem('user', JSON.stringify(response));
-          this.userSubject.next(response);
-          return response;
-        }) //map ends here
-      ); //pipe ends here
+          // Explicitly create a User object
+          // const user: User = {
+          //   userName: response.data.userName,
+          //   role: response.data.role,
+          //   // add other User properties as needed
+          //   email: response.data.email,
+          //   profilePicture:response.data.profilePicture
+          // };
+
+         // localStorage.setItem('user', JSON.stringify(user));
+
+         // this.userSubject.next();
+
+        //  return user;
+
+        this.setToken(response.data);
+          return null;
+        })
+      );
   }
 
   logout() {
@@ -80,3 +93,4 @@ removeExpiredToken(): void {
 }
 
 }
+
